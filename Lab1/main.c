@@ -52,10 +52,7 @@ int getSector(u32 sector, char *addr)
   dp->s1      = (u32)sector;
   diskr();    // call int13-43 in assembly
 }
-
-extern int printf(char* fmt, ...);
-extern int gets(char s[]);
-
+ 
 int main()
 {
   int i;
@@ -73,14 +70,18 @@ int main()
   getSector((u32)0, (u16)mbr); // get MBR 
   color = CYAN;
 
-  while(1){
+  while(1)
+  {
+
     printf("\nwhat's your name? ");
     gets(ans);
+    
     if (strcmp(ans, "quit")==0){
       printf("exit main()");
       break;
     }
-    printf("\nWelcome %s!", ans);
+
+    printf("\nWelcome! %s\n", ans);
   }
 
   printf("\nreturn to assembly and hang\n");

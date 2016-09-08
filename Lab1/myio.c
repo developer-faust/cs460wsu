@@ -12,16 +12,14 @@ char *table = "0123456789ABCDEF";
 // Prints a string "This is some string"
 void prints(char *str) { 
 
-    while(*str) 
-    { 
-        putc(*str); 
-        if(*str == '\n')
-        {
+   while(*str) 
+   {
+        putc(*str);
+        if(*str == '\n'){
             putc('\r');
         }
-
-        str;
-    } 
+        str++; 
+    }
 }
 
 // Recursive print unsigned integers
@@ -125,14 +123,9 @@ void printx(u32 x) {
 
 void gets(char s[])
 { 
-
-    while((*s = getc()) != '\r')
-    {
-        putc(*s++); 
-    } 
-    *s = 0;   
-
-    prints("\n\r");
+    while((*s = getc()) != '\r') { putc(*s++); }
+    *s = 0;
+    prints("\n\r"); 
 }
 
 int strcmp(char *s1, char *s2)
@@ -207,6 +200,8 @@ void printf(char *fmt, ...)
         else
         {
             putc(*cp);  
+            if(*cp == '\n')
+                putc('\r');
         }
 
         cp++;
