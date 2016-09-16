@@ -1,0 +1,84 @@
+Notes:
+------
+
+During booting, the MTX booter loads mtx0 to which segment? 
+
+**	0x1000 and jumps  to there to execute the mtx0 code
+
+When execution starts in ts.s, it sets all segment registers to 0x1000 why?
+
+**	In order to conform to the program’s one-segment memory model.
+
+
+Then it sets the stack pointer to the high end of proc0. Why?
+
+**	so that proc0.kstack is the initial stack area.
+
+
+******************* CHECK THE EXECUTION DIAGRAM *********************
+
+Then the assembly code calls main() in C. When control enters main(), we have an image in execution.
+
+By the definition of process, which is the execution of an image, we have a process in execution
+
+In main(), after setting running to point at proc0
+
+run-time behavior of the program
+--------------------------------
+******************* CHECK THE EXECUTION DIAGRAM *********************
+
+
+	At (1), it lets running point to proc0, as shown on the right-hand side of Fig. 4.1.
+	Since we assume that running always points at the PROC of the current executing
+	process, the system is now running the process proc0.
+
+	At (2), it calls tswitch(), which saves the return address, rPC, in stack.
+
+	At (3), it executes the SAVE part of tswitch(), which saves CPU registers into
+	stack and saves the stack pointer sp into proc0.ksp.
+
+	At (4), it calls scheduler(), which sets running to point at proc0 again. For now,
+	this is redundant since running already points at proc0. Then it executes the RE-
+	SUME part of tswitch().
+
+	At (5), it sets sp to proc0.ksp, which is again redundant since they are already the
+	same. Then it pops the stack, which restores the saved CPU registers.
+
+	At (6), it executes ret at the end of RESUME, which returns to the calling place
+	of tswitch().
+
+						*********** CODE *************
+						int scheduler () 
+						{ 
+							running = &proc0; 
+						}
+
+						main()
+						{
+
+							running = &proc0;
+
+							printf("\n\nHello From Main Function \n\n");
+							printf("call tswitch()\n\r");
+
+							tswitch();
+
+							printf("back to main()\n\r");
+							gets();
+						}
+
+Context Switching:
+
+Changing the execution environment of one process to that of another is called context switching, which is the basic mechanism of multitasking.
+
+Assume that we have another PROC structure, proc1, which called tswitch() and
+executed the SAVE part of tswitch() before. Then proc1’s ksp must point to its stack
+area, which contains saved CPU registers and a return address from where it called
+tswitch()
+
+
+ksp : kernel space
+
+
+* With Context Switching we can create multitasking environment containing many processes.
+

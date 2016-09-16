@@ -1,0 +1,63 @@
+A Simple Multitasking System
+----------------------------
+
+
+We define NPROC = 9 PROC structures, each PROC has a unique pid number for identification.
+
+The PROCs are initialized as follows:
+
+	running -> P0 -> P1 -> P1 -> P2 ->....-> P8->|
+				|
+				|								 |
+				<----------------------------<----
+
+
+(1) P0 is the initial running process
+(2) All the PROCs form a circular link list for simple process scheduling.
+
+(3) Each of the PROCs, P1 to P8, is initialized in such a way that it is ready to resume running from a body() function.
+
+
+
+**** The reason why a PROC is not running now is because it called tswitch() to gave up CPU earlier.
+
+
+**** If so, the PROC’s ksp must point to its stack area containing saved CPU registers and a return address
+
+************************* Check Diagram Process stack contents.png ************************
+
+(1) Since the PROC never really ran before, we may assume that its stack was ini-
+tially empty
+
+	(a) So that the return address, rPC, is at the very bottom of the stack.
+
+(2) What should be the rPC?
+	(a) It may point to any executable code, e.g. the entry address of a body() function.
+
+(3) What about the “saved” registers?
+	(a) Since the PROC never ran before, the register values do not matter, so they can all be initialized to 0. Accord ingly, we initialize each of the PROCs, P1 to P8
+
+************************* Initial stack contents of a process.png  ************************
+
+(4) When a PROC becomes running, i.e. when running points to the PROC, it would execute the RESUME part of tswitch()
+
+	(a) Which restores the “saved” CPU registers, followed by RET, causing the process to execute the body() function.
+
+
+(5) After initialization, P0 calls tswitch() to switch process.
+
+(6) In tswitch() P0 saves:
+	(a) CPU registers into its own stack, 
+	(b) Saves the stack pointer in its PROC.ksp and 
+	(c) Calls scheduler().
+
+(7) What does The scheduler() function do?
+
+	(a) simply changes running to running-> next. So P0 switches to P1
+	(b) P1 begins by executing the RESUME part of tswitch(), causing it to resume to the body() function
+
+(8) While in body() ?
+	(a) the running process prints its pid and prompts for an input char.
+	(b) Then it calls tswitch() to switch to the next process, etc.
+
+(9) Since the PROCs are in a circular link list, they will take turn to run.

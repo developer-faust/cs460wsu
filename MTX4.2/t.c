@@ -3,11 +3,7 @@
 #define NPROC    9
 
 
-/******* PROC status ********/
-
-
-
-
+/******* PROC status ********/ 
 PROC proc[NPROC], *running, *freeList, *readyQueue, *sleepList;
 int procSize = sizeof(PROC);
 int nproc = 0;
