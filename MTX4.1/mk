@@ -13,5 +13,7 @@ rm /mnt/boot/*
 cp mtx /mnt/boot
 umount /mnt
 
+read dummy
+
 qemu-system-i386 -fda FDimage -no-fd-bootchk
 

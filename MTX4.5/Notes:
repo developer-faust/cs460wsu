@@ -1,0 +1,63 @@
+Notes:
+
+
+During booting:
+
+1. 	MTX booter loads mtx0 to segment 0x1000 and jumps to there 
+	to execute the mtx0 code.
+
+2. 	When execution starts in ts.s it:
+
+	1. 	sets all segment registers to 0x1000 in order to conform 	to the program's one-segment memory model.
+
+			mov 	ax,cs 	! set DS=SS=CS = 0x1000
+			mov 	ds,ax
+			mov 	ss,ax
+
+	2. Then it sets the stack pointer to the high end of proc0
+		so that proc0.kstack is the initial stack area.
+
+			mov 	sp, #_proc0	!set sp point to proc0 in C code
+
+	3. Execution Diagram:
+
+
+	main()
+	{
+		(1) running = &proc0;
+		(2) tswitch();
+
+
+						(3) SAVE: push =====>					(4) scheduler()
+			printf();												   ksp
+																	   |
+		PROC0 														   |
+		Stack:	[main fram| rPc | ax | bx | cx | dx | bp | si | di | flag|     ]
+						  |		|								       |
+						  |	(6)	|	<=== pop Stack					  sp  <=== RESUME:
+
+	}
+
+				KEY Steps:
+				At (1), it lets running point to proc0, as shown on the right-hand side of Fig. 4.1.
+				Since we assume that running always points at the PROC of the current executing
+				process, the system is now running the process proc0.
+				
+				At (2), it calls tswitch(), which saves the return address, rPC, in stack.
+				At (3), it executes the SAVE part of tswitch(), which saves CPU registers into
+				stack and saves the stack pointer sp into proc0.ksp.
+				
+				At (4), it calls scheduler(), which sets running to point at proc0 again. For now,
+				this is redundant since running already points at proc0. Then it executes the RE-
+				SUME part of tswitch().
+				
+				At (5), it sets sp to proc0.ksp, which is again redundant since they are already the
+				same. Then it pops the stack, which restores the saved CPU registers.
+				
+				At (6), it executes ret at the end of RESUME, which returns to the calling place
+				of tswitch().
+
+
+	In main():
+
+	4. After setting running to point at proc0, the system is now running the process proc0
