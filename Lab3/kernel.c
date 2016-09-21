@@ -1,6 +1,11 @@
 #include "type.h"
 
-PROC *kfork(char *filename)
+
+/***********************************************************
+  kfork() creates a child proc and returns the child pid.
+  When scheduled to run, the child process resumes to body();
+************************************************************/ 
+PROC *kfork(char *fname)
 {
   int j, segment;
   PROC *p = dequeue(&freeList);
@@ -27,7 +32,7 @@ PROC *kfork(char *filename)
   for (j=1; j<10; j++) {
     p->kstack[SSIZE - j] = 0;       // all saved registers = 0
   }
-  p->kstack[SSIZE-1]=(int)goUmode;     // called tswitch() from body
+  p->kstack[SSIZE-1]=(int)body;     // called tswitch() from body
   p->ksp = &(p->kstack[SSIZE-9]); // ksp -> kstack top
 
   printf("Loading executable\n"); //FOR TESTING

@@ -1,20 +1,41 @@
-        MTXSEG  = 0x1000
+!================================== LEGEND ================================== 
+!
+!   All registers are 16-bit
+!
+!   IP = Instruction Pointer
+!   PC = Program Counter --> next intstruction in memory
+!   SR = Status Register = mode, interruptMask, conditionCode; mode=System/User
+!   SP = Stack Pointer --> current stack top
+!   AX = Return Value
+!
+!   FLAG = Status Register
+!   
+!   General Registers: AX  BX  CX  DX  BP  SI  DI
 
+!   Segment Registers
+!   -----------------
+!   CS -> Code  Segment = program code or instructions
+!   DS -> Data  Segment = static and global data (ONE COPY only)
+!   SS -> Stack Segment = stack area for calling and local variables. 
+!   ES -> Extra Segment = temp area; may be used for malloc()/mfree()
+!=================================== ts.s =================================== 
+
+        MTXSEG  = 0x1000                           
         .globl _main, _running, _scheduler
         .globl _proc, _procSize, _color
         .globl _putc, _getc, _tswitch, _getbp
 
 
-        jmpi    start, MTXSEG
+        jmpi    start, MTXSEG                           ! CS=MTXSEG, IP=start
 
-start:  mov     ax, cs
-        mov     ds, ax
+start:  mov     ax, cs                                  ! establish segments 
+        mov     ds, ax                                  ! Let DS,SS,ES = CS=0x1000.
         mov     ss, ax
         mov     es, ax
-        mov     sp, #_proc
-        add     sp, _procSize
+        mov     sp, #_proc                              ! sp -> proc[0]
+        add     sp, _procSize                           ! sp -> proc[0]''s HIGH END
 
-        call    _main
+        call    _main                                   ! call main() in C
 
 _tswitch:
 SAVE:   push    ax
@@ -43,15 +64,16 @@ RESUME: mov     bx, _running
 
         ret
 
-        ! added functions for KUMODE
+! added functions for KUMODE
 
         .globl  _int80h, _goUmode, _kcinth
 
-        ! Offsets defined in PROC structure
+! Offsets defined in PROC structure
+
 USS = 4
 USP = 6
 
-_int80h:
+_int80h:                                                ! save all Umode registers in ustack
         push    ax
         push    bx
         push    cx
@@ -61,33 +83,55 @@ _int80h:
         push    di
         push    es
         push    ds
+!                      |by INT 80 =>|   by _int80h: ============>|
+!                   ---|-----------------------------------------------
+! ustack contains : ???|flag,uCS,uPC|ax,bx,cx,dx,bp,si,di,ues,uds|
+!                   -------------------------------------------|---- 
+!                                                              |
+!                                                             uSP
 
-        ! ustack contains : flag, uCS, iPC, ax, bx, cx, dx, bp, si, di, ues, uds
-        push    cs
-        pop     ds              ! KDS now
+        push    cs                                      ! push kCS (0x1000) 
+        pop     ds                                      ! let DS=CS = 0x1000 (KDS now) 
 
-        mov     bx, _running    ! ready to access proc 
-        mov     USS[bx], ss     ! save uSS in proc.USS
-        mov     USP[bx], sp     ! save uSP in proc.USP
+! All variables are now relative to DS=0x1000 of Kernel space
+! save running proc''s Umode uSS and uSP into its PROC 
 
-        ! Change ES, SS to kernel segment
-        mov     ax, ds          ! stupid !! why
-        mov     es, ax          ! CS=DS=SS=ES in kmode 
-        mov     ss, ax
+        mov     bx, _running                            ! ready to access proc 
+        mov     USS[bx], ss                             ! save uSS in proc.USS
+        mov     USP[bx], sp                             ! save uSP in proc.USP
 
-        ! set sp to HI end of running!''s kstack[]
-        mov     sp, _running    ! proc''s kstack[2 KB]
-        add     sp, _procSize   ! HI end of PROC
+! Change ES, SS to kernel segment
 
-        call    _kcinth
+        mov     ax, ds                                  ! must mov segments this way!
+        mov     es, ax                                  ! CS=DS=SS=ES in kmode 
+        mov     ss, ax                                  ! SS is now KSS = 0x1000
+
+! switch (running proc''s) stack from U space to K space.
+
+        mov     sp, _running                            ! sp points at running proc (proc''s kstack [2 KB])
+        add     sp, _procSize                           ! sp -> HIGH END of running''s kstack[]
+
+! We are now completely in K space, and stack is running proc''s (empty) kstack
+! *************   CALL handler in C ******************************
+
+        call    _kcinth                                 ! call kcinth() in int.c
+                                                        ! kc = Kmode code
+
+! *************   RETURN TO U Mode ********************************
         jmp     _goUmode
 
+!=============================================================================
+! The assembly function goUmode() restores Umode stack, then restores Umode
+! registers, followed by an IRET, causing the process to return to Umode.
+!
+! These assembly functions are keys to understanding Umode/Kmode transitions. 
+!*****************************************************************************
 _goUmode:
-        cli
-        mov bx,_running         ! bx -> proc
+        cli                                             ! mask out interrupts
+        mov bx,_running                                 ! bx -> proc
         mov ax,USS[bx]
-        mov ss,ax               ! restore uSS
-        mov sp,USP[bx]          ! restore uSP
+        mov ss,ax                                       ! restore uSS
+        mov sp,USP[bx]                                  ! restore uSP
   
         pop ds
         pop es
@@ -97,7 +141,7 @@ _goUmode:
         pop dx
         pop cx
         pop bx
-        pop ax                  ! NOTE: contains return value to Umode     
+        pop ax                                          ! NOTE: contains return value to Umode     
         
         iret
 

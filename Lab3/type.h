@@ -102,6 +102,7 @@ int kkexit(int exitValue);
 
 // Used in Kernel.c
 void goUmode();
+int body();
 PROC *kfork(char *fname);
 int kexit(int event);
 void printProc(PROC *p);

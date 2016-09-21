@@ -1,0 +1,223 @@
+Lab3 Notes:
+
+During execution, the CPU’s CS, DS and SS all point
+to the same segment of the execution image
+
+Process execution:
+_______________________________________________________________________
+|			||					  ||								  |
+|	CODE	||		DATA		  ||			STACK	   			  |						
+|___________||____________________||__________________________________|	
+|		|			|						|				 |
+CS 		pc			DS						SS				 sp
+
+
+CS = Code Segment
+DS = Data Segment
+SS = Stack Segment
+
+
+In the separate I&D space memory model:
+
+1. CS points to the Code segment, 
+2. DS and SS point to the combined Data and Stack segment.
+
+
+Single-segment memory model:
+
+1. Each process image has only one segment and the segment size is 64 KB.
+
+
+5.2 Kernel and User Modes:
+
+process may execute in two different modes:
+* kernel mode (Kmode) and user mode (Umode).
+
+Kmode:
+
+1. all processes share the same Code and Data of the OS kernel
+2. each process has its own kernel mode stack (in the PROC structure).
+
+	* Kernel mode stack Contains the execution context of the process while in Kmode.
+
+3. When a process gives up CPU, it saves its dynamic context (CPU registers) in kstack
+
+4. When a process becomes running again, it restores the saved context form kstack.
+
+
+Umode:
+
+1. process images are in general all different
+2. Each process has a separate Umode memory area containing the user mode code, data and stack:
+
+	* Ucode, Udata and Ustack, of the process.
+
+
+Memory Model:
+
+The MTX kernel runs in the segment 0x1000
+The system has 9 PROC structures, P0 to P8. P0 always runs in Kmode.
+
+Only P1 to P8 may run in Umode, each has a distinct 64 KB Umode image
+in the segment (pid + 1)* 0x1000
+
+		* P1 in 0x2000, P2 in 0x3000, P8 in 0x9000
+
+0x0000			0x1000		  0x2000	 0x3000	 						   0x6000    0x7000
+_____________  ___________  ___________  ______________________________________________________
+| Vectors    ||    		  ||           ||        ||                     ||        ||	
+|		     ||	  Kernel  ||    	   ||Uimage2 ||						||Uimage5 ||
+|____________||__________ ||___________||________||_____________________||________||___________   
+ 			  kCS, kDS, kSS												uCS, uDS, uSS																										 
+
+
+
+
+
+P5 is running in Umode now, P2 is READY but not running:
+
+1. Since P5 is running in Umode, the CPU’s CS, DS, SS registers must all point to
+	  P5’s Umode image at 0x6000
+
+2. P5’s ustack is in the upper region of Uimage5.
+
+3. When P5 enters Kmode, it will execute the Kernel image in the segment 0x1000.
+
+4. The CPU’s CS, DS, SS registers must be changed to point to 0x1000
+					* kCS, kDS, kSS		
+
+5. In order for P5 to run in kernel, the stack pointer must also be changed to point to P5’s kstack.
+
+6. P5 must save its Umode segment registers, uCS, uDS, uSS, and usp if it intends to return to Uimage5 later
+
+
+Scenerio: P5 switches to P2
+
+P2: return to its Umode image at 0x3000.
+P2: must change CPU’s segment registers to its own uCS, uDS, uSS,  point to 0x3000
+
+When P2 runs in Umode, its ustack is in the upper region of Uimage2
+
+
+5.3 Transition Between User and Kernel Modes:
+
+1. Every process begins in Kmode
+
+2. A process in Umode will enter Kmode if one of the following events occurs:
+
+• Exceptions : also called traps, such as illegal instruction, invalid address, etc.
+•	 Interrupts : timer interrupts, device I/O completion, etc.
+•	 System calls : INT n (or equivalent instructions on other CPUs).
+
+
+3. System call, or syscall for short, is a mechanism which allows a process in Umode to enter Kmode to execute kernel functions.
+
+•	 Involve CPU operating in different modes (if so equipped) and executing in different address spaces.
+
+
+4. However, once the linkage is set up, syscalls can be used as if they were ordinary function calls.
+
+
+Example:
+
+Assume that there are N kernel functions, each corresponds to a call number n = 0,  1,., N − 1, e.g
+
+Call# 			Kernel Function
+----- 				------------------------
+	0						kgetpid()								// get process pid
+	1						kfork()										// fork a child process
+ 	2						kexec()									// change Umode image
+	3						kwait()									// wait for ZOMBIE child process
+	........................................
+	6						kexit()										// terminate
+
+
+
+Umode process may use:
+
+				int r = syscall(call#, parm1, parm2, .... );
+
+1. To enter Kmode to execute the corresponding kernel function, passing parameters to the kernel function as needed.
+
+2. When the kernel function finishes, the process returns to Umode with the desired results and a return value.
+
+3. For most syscalls, a 0 return value mean success and  - 1 means failure.
+
+
+
+
+How syscalls work:
+
+Assuming 4 parameters, the implementation of syscall():
+
+
+!===============================
+! int syscall(int a,b,c,d); issue INT 80 to enter Kernel
+!=============================== 
+
+_syscall:
+								INT 			n
+								ret
+
+
+INT 80 - arbitrary
+
+When the CPU executes INT 80, it does the following:
+
+1. PUSH: push flag register, clear flag register’s T-bit and I-bit; push uCS and uPC.
+2. LOAD: load (PC, CS) with contents of (4*80, 4*80 + 2) = (_int80h, KCS).
+3. HANDLER: continue execution from the loaded (PC, CS) = (_int80h, KCS).
+
+PUSH: INT n causes the CPU to push the current uFlag, uCS, uPC into stack.
+
+The Intel x86 CPU in 16-bit real mode does not have a separate Kmode or a separate Kmode stack
+pointer. After executing INT 80, it only switches the execution point from (uPC, uCS) to (kPC, kCS)
+
+* Changes the code segment from UCode to KCode.
+
+* All other segments (DS, SS, ES) and CPU registers are still those in Umode.
+
+												_syscall : INT 80
+									 return HERE: RET
+____________________________________________
+/////////// || uFlag | uCS | uPC |
+________||______|_____|_____|_________________
+High			|---- by INT 80 ------>									Low
+																usp
+
+* When CPU first enters the int80h() handler function, the stack is still the process ustack in the uSS segment.
+
+uSS Contains:
+1. saved uFlag, uCS, uPC at the top, where uPC points at the address of returnHERE in _syscall,
+
+2. the instruction IRET pops three items off the current stack into CPU’s PC, CS, Flag registers
+
+
+LOAD: For the x86 CPU in 16-bit real mode, the lowest 1 KB area of physical
+memory is dedicated to 256 interrupt vectors.
+
+
+
+The interrupt vector 80 area must be initialized before executing INT 80:
+
+set_vector(80, (int)int80h); // int80h() is _int80h: in ts.s file
+int set_vector(int vector, int handler)
+{
+       put_word(handler, 0x0000, vector*4);
+       // KPC points to handler
+       put_word(0x1000, 0x0000, vector*4+2); // KCS segment=0x1000
+}
+
+
+
+5.3.2 System Call Interrupt Handler:
+
+1. After loading the vector 80 contents into (PC, CS) registers, the CPU executes int80h() in the code segment of the MTX kernel.
+
+2. int80h() is the entry point of INT 80 interrupt handler in assembly code
+
+
+HANDLER: INT80 interrupt handler
+|========================================================= 
+| int80h() is the entry point of INT 80 interrupts
+|=========================================================   
