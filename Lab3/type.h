@@ -26,15 +26,15 @@ typedef struct proc
     int    *ksp;               // at offset 2
 
     int    uss, usp;           // at offsets 4,6
-    int    inkmode;            // at offset 8
-
+    int    inkmode;            // at offset 8 
+    
     int    pid;                // add pid for identify the proc
     int    status;             // status = FREE|READY|RUNNING|SLEEP|ZOMBIE    
     int    ppid;               // parent pid
     struct proc *parent;
     int    priority;
     int    event;
-    int    exitCode;
+    int    exitValue;
     char   name[32];           // name string of PROC
 
     int    kstack[SSIZE];      // per proc stack area
@@ -100,8 +100,7 @@ int kkwait(int *status);
 int kkexit(int exitValue);
 
 
-// Used in Kernel.c
-void goUmode();
+// Used in Kernel.c 
 int body();
 PROC *kfork(char *fname);
 int kexit(int event);

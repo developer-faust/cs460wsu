@@ -47,28 +47,60 @@ int kgetpid()
 int kps()
 {
     // WRITE C code to print PROC information
-    PROC *p;
-    
-    int i;
-    printf("********************************************************************\n");
-    printf("%s%s%s%s\n", "name        ", "status        ", "pid       ", "ppid      ");
-    printf("********************************************************************\n");
+   
+    int i,j;
+    PROC* p;
+    char *cp, buf[16];
+    buf[15] = 0;
+
+    printf("\n===========================================\n");
+    printf("  Name            Status     PID     PPID  \n");
+    printf("-------------------------------------------\n");
 
     for (i = 0; i < NPROC; i++)
     {
-        printf("%s%s        %d         %d\n", "            ", statusString[proc[i].status], proc[i].pid, proc[i].ppid); 
+        p = &proc[i];
+
+        strcpy(buf,"               ");
+        if(p->name)
+        {
+            cp = p->name;
+            j = 0;
+            while(*cp)
+                buf[j++] = *(cp++);
+        }
+
+        if(p->status == FREE)
+            printf("  %s %s\n", buf, statusString[p->status]);
+        else
+            printf("  %s %s    %d       %d   \n", 
+                    buf, statusString[p->status], p->pid, p->ppid);
     }
-    
-    printf("********************************************************************\n"); 
+    printf("===========================================\n");
 }
 
 int kchname(char *name)
 {
     //WRITE C CODE to change running's name string;
-    char c;
-    int i = 0;
-   
-    return(0);
+    char buf[64];
+    char *cp = buf;
+    int c = 0; 
+    while(c < 32)
+    {
+        *cp = get_byte(running->uss, name);
+        if(*cp == 0)
+            break;
+
+        cp++;
+        name++;
+        c++;
+    }
+
+    printf("changing name of proc %d to %s\n", running->pid, buf);
+    strcpy(running->name, buf);
+    printf("done!!\n");
+    return 0;
+ 
 }
 
 int kkfork()

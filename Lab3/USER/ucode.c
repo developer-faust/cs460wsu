@@ -80,7 +80,7 @@ int exit()
 {
    int exitValue;
    printf("enter an exitValue: ");
-   exitValue = geti();
+   exitValue = atoi(gets());
    printf("exitvalue=%d\n", exitValue);
    printf("enter kernel to die with exitValue=%d\n", exitValue);
    _exit(exitValue);

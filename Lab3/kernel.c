@@ -63,7 +63,7 @@ int kexit(int event)
     int hc = 0;
     PROC *child, *temp;
     child = temp = 0;
-    running->exitCode = event;
+    running->exitValue = event;
 
     //run through each proc list to find any children
     temp = readyQueue;

@@ -11,7 +11,7 @@ char *pname [] = {"Sun", "Mercury", "Venus", "Earth",  "Mars", "Jupiter", "Satur
  
 int color;
 int nproc;
-int body();
+
 int init()
 {
     PROC *p; int i;
@@ -57,7 +57,7 @@ int set_vector(u16 vector, u16 handler)
             
 main()
 {
-    printf("MTX starts in main()\n");
+    printf("\nMTX starts in main() Hello Tino\n");
     init();      // initialize and create P0 as running
     set_vector(80, int80h);
 
@@ -89,12 +89,21 @@ int body()
         c = getc(); printf("%c\n", c);
         switch(c)
         {
-            case 's' : tswitch();   break;
-            case 'f' : kfork();     break;
-            case 'q' : printf("Enter exit code: "); event = atoi(gets()); printf("%d\n", event); kexit(event);      break; 
-            case 'p' : kps();        break; 
-            case 'w' : kwait();      break;
-            case 'u' : goUmode(); break;
+            case 's' : tswitch();   
+                break;
+            case 'f' : kfork();     
+                break;
+            case 'q' : 
+                printf("Enter exit code: "); 
+                event = atoi(gets()); printf("%d\n", event); 
+                kexit(event);      
+                break; 
+            case 'p' : kps();        
+                break; 
+            case 'w' : kwait();      
+                break;
+            case 'u' : goUmode(); 
+                break;
         }
     }
 

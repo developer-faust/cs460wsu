@@ -91,7 +91,7 @@ int kwait(int *status)
 		while((child = findZombieChild())) //Zombie found
 		{
 	    	printf("Found zombie child\n"); //FOR TESTING
-		    *status = child->exitCode;
+		    *status = child->exitValue;
 		    deadPid = child->pid;
 		    child->status = FREE;
 		    enqueue(&freeList, child);
