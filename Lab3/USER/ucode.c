@@ -1,14 +1,14 @@
 // ucode.c file
 
-char *cmd[]={"getpid", "ps", "chname", "kfork", "switch", "wait", "exit", 0};
+char *cmd[]={"getpid", "ps", "chname", "kfork", "switch", "wait", "exit", "exec", 0};
 
 #define LEN 64
 
 int show_menu()
 {
-    printf("***************** Menu *******************\n");
-    printf("*  ps  chname  kfork  switch  wait  exit *\n");
-    printf("******************************************\n");
+    printf("***************** Menu **************************\n");
+    printf("*  ps  chname  kfork  switch  wait  exec   exit *\n");
+    printf("*************************************************\n");
 }
 
 int find_cmd(char *name)
@@ -54,6 +54,24 @@ int kfork()
   child = syscall(3, 0, 0);
   printf("proc %d kforked a child %d\n", pid, child);
 }    
+
+
+// Begin Labe 4 Implementation
+int uexec()
+{
+  int r;
+  char filename[64];
+
+  printf("enter exec filename: ");
+  gets(filename);
+
+  r = exec(filename);
+}
+
+int exec(char *s)
+{
+  return syscall(7, s, 0); 
+}
 
 int kswitch()
 {

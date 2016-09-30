@@ -10,8 +10,7 @@
 
 _syscall:
         int    80
-        ret
-
+        ret 
 
 	
 _getcs:

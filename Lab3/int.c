@@ -28,10 +28,19 @@ int kcinth()
         case 5 : r = kkwait(b);        break;
         case 6 : r = kkexit(b);        break;
 
+        // Lab 4 implementation
+        case 7 : r = kexec(b);         break;
+        case 8 : r = fork();           break;
+
+        // From Lab 3: getc() putc() syscalls
+        case 90: r = getc();           break;
+        case 91: r = putc();           break; 
+
         case 99: kkexit(b);            break;
         default: printf("invalid syscall # : %d\n", a); 
     }
 
+    // Let r be the return value to Umode
     put_word(r, running->uss, running->usp + 16);
     return r;
 
@@ -43,6 +52,8 @@ int kgetpid()
 {
     return running->pid;
 }
+
+
 
 int kps()
 {
@@ -109,6 +120,78 @@ int kkfork()
     // return child pid or -1 to Umode!!!
     int i = kfork();
     return i;
+}
+
+// Lab 4 Implementation Code for syscall function : exec(filename)
+// 1. Convert file name to byte string representation
+
+char *get_strbyte(char *str)
+{
+    int i = 0;
+    while(i < sizeof(temp_string))
+    {
+        temp_string[i] = get_byte(running->uss, str + 1);
+        if(temp_string[i] == '\0')
+            break;
+
+        i++;
+    }
+
+    return temp_string; 
+}
+int kexec(char *fpU)    // fpU points to filename in Umode space
+{
+    int i, r, length = 0;
+    char filename[64], *cp = filename; 
+
+    u16 usp, segment = running->uss;
+
+    // Get the filename from U space with a length limit of 64
+    while((*cp++ = get_byte(running->uss, fpU++)) && length++ < 64);
+
+    filename[length] = '\0';
+    printf("kexec filename: %s\n", filename);
+
+    printf("\nP%d exec '%s' in segment %x", running->pid, filename, segment);
+
+    // Copy the filename to the High end of ustack
+    for (i = 0; i < count; ++i)
+    {
+        /* code */
+    }
+
+
+    // Load the filename to the segment
+    if(!(r = load(filename, segment)))
+    {
+        printf("load result: %d\n", r);
+        getc();
+        return -1;              // load failed
+    }
+
+    for (i = 1; i < 12; i++)
+    {
+        put_word(0, segment, -2 *i);
+    }
+
+    running->usp = -24;         // new usp = -24
+
+    /* -1     -2    -3    -4  -5  -6  -7  -8   -9   -10    -11   -12 ustack layout */
+    /* flag   uCS   uPC   ax  bx  cx  dx   bp  si    di     uES   uDS              */
+
+    put_word(segment, segment, -2 * 12);
+    put_word(segment, segment, -2 * 11);
+    put_word(segment, segment, -2 * 2);
+    put_word(segment, segment, -2 * 1); 
+    
+    
+
+}
+
+// Lab 4: fork()
+int fork()
+{
+    printf("fork a child process\n");
 }
 
 int ktswitch()

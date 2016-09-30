@@ -9,9 +9,9 @@ int main( )
 	while(1)
 	{
 		pid 	= getpid();
-		color 	= 0x0C;
+		color 	= 0x0D;
 
-		printf("-----------------------------------------------\n"); 
+		printf("-u2-----------------------------------------------\n"); 
 	 	printf("I am proc %d in U mode: running segment=%x\n",getpid(), getcs());
 		show_menu();
 
@@ -32,8 +32,8 @@ int main( )
 			case 5 : wait();     break;
 			case 6 : exit();     break;
 
-			// Lab4 implementation
-			case 7 : uexec();
+			// Lab 4 Edition
+			case 7 : exec();	 break;
 
 			default: invalid(name); break;
 		}

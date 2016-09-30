@@ -88,6 +88,8 @@ int procSize = sizeof(PROC);
 // void printl(u32 x); 
 // void printf(char *fmt, ...);
 
+// Temporary data structures for array manipulation
+char temp_string[64];
 
 // Used in int.c
 int kcinth();
@@ -98,7 +100,7 @@ int kkfork();
 int ktswitch();
 int kkwait(int *status);
 int kkexit(int exitValue);
-
+int kexec(char *fpU);
 
 // Used in Kernel.c 
 int body();
