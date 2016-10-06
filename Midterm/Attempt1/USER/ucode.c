@@ -1,9 +1,9 @@
-// ucode.c file
+// ucode.c file 
 
-char *cmd[]={"getpid", "ps", "chname", "kfork", "switch", "wait", "exit", "exec", "fork", 0};
+char *cmd[]={"getpid", "ps", "chname", "kfork", "switch", "wait", "exit", "exec", "fork", "hop", 0};
 
 #define LEN 64
-
+  
 int show_menu()
 {
     printf("***************** Menu *******************************\n");
@@ -56,6 +56,15 @@ int kfork()
 }    
 
 
+int hop()
+{
+  int newsegment;
+  printf("Hop to segment: ");
+  newsegment = geti();
+
+  printf("\n");
+  return syscall(9, newsegment, 0);
+}
 // Begin Labe 4 Implementation
 int uexec()
 {
@@ -111,6 +120,10 @@ int wait()
 int geti()
 {
   // return an input integer
+  char s[16];
+  gets(s);
+
+  return atoi(s);
 }
 
 int exit()

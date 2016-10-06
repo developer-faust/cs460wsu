@@ -64,6 +64,7 @@ int kwait(int *status);
 
 
 PROC proc[NPROC], *running, *freeList, *readyQueue, *sleepList;
+int color;
 int procSize = sizeof(PROC);
 
 // // Used in queue.c

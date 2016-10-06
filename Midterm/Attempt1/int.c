@@ -7,16 +7,29 @@
 ----------------------------------------------------------------------------
 ***************************************************************************/
 
+#define WORD_SIZE 2
+extern PROC proc[], *running, *freeList, *sleepList, *readyQueue;
+
+#define PA (13 * 2)
+#define PB (14 * 2)
+#define PC (15 * 2)
+#define PD (16 * 2)
+#define AX (8  * 2)
+
 /****************** syscall handler in C ***************************/
 int kcinth()
 {
-    int a,b,c,d, r;
+    int a,b,c,d, r, offset, segment;
+
+
+    offset = running->usp;
+    segment = running->uss;
 
     //WRITE CODE TO GET get syscall parameters a,b,c,d from ustack 
-    a = get_word(running->uss, running->usp + 26);
-    b = get_word(running->uss, running->usp + 28);
-    c = get_word(running->uss, running->usp + 30);
-    d = get_word(running->uss, running->usp + 32);
+    a = get_word(segment, offset + PA);
+    b = get_word(segment, offset + PB);
+    c = get_word(segment, offset + PC);
+    d = get_word(segment, offset + PD);
 
     switch(a)
     {
@@ -31,6 +44,7 @@ int kcinth()
         // Lab 4 implementation
         case 7 : r = kexec(b);         break;
         case 8 : r = fork();           break;
+        case 9 : r = hop(b);           break;
 
         // From Lab 3: getc() putc() syscalls
         case 90: r = getc();           break;
@@ -41,8 +55,48 @@ int kcinth()
     }
 
     // Let r be the return value to Umode
-    put_word(r, running->uss, running->usp + 16);
-    return r;
+    put_word(r, segment, offset + AX); 
+
+} 
+int copyImage(int childSeg)
+{
+    int i, word;
+
+    #define SIZE_OF_WORD 2
+
+    printf("Copying 0x%x to 0x%x\n", running->uss, childSeg);
+    for(i = 0; i < (64 / SIZE_OF_WORD) * 1024; i++)
+    {
+        word = get_word(running->uss, i * SIZE_OF_WORD);
+        put_word(word, childSeg, i * SIZE_OF_WORD);
+    }
+
+    return 0;
+}
+int hop(u32 newsegment)
+{
+    u16 segment;
+
+    printf("In Hop: segment = %d\n", newsegment);
+
+    // Find the running segment
+    segment = 0x1000 * (newsegment + 1);
+    copyImage(segment);
+
+    // Change User Stack Segment to the segment
+    running->uss = segment;
+    #define REG_SIZE 2
+
+    // Set UMode Data
+    put_word(segment, segment, running->usp + (0 * REG_SIZE));
+
+    // Set UMode extra segment
+    put_word(segment, segment, running->usp + (1 * REG_SIZE));
+
+    // Set UMode code segment
+    put_word(segment, segment, running->usp + (10 * REG_SIZE));
+
+    return newsegment;
 
 }
 
@@ -66,7 +120,7 @@ int kps()
 
     printf("\n===========================================\n");
     printf("  Name            Status     PID     PPID  \n");
-    printf("-------------------------------------------\n");
+    printf("------------------------`-------------------\n");
 
     for (i = 0; i < NPROC; i++)
     {

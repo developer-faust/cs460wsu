@@ -1,7 +1,7 @@
 #include "ucode.c"
 
 int color;
-int main( )
+int main(int argc, char *argv[] )
 {
 	char name[64];
 	int pid, cmd;
@@ -33,7 +33,8 @@ int main( )
 			case 6 : exit();     break;
 
 			// Lab4 implementation
-			case 7 : uexec();
+			case 7 : uexec();	 break;
+			case 8 : ufork();	 break;
 
 			default: invalid(name); break;
 		}

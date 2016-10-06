@@ -1,8 +1,7 @@
 #include "ucode.c"
 
-
 int color;
-int main(int argc, char *argv[])
+int main(int argc, char *argv[] )
 {
 	char name[64];
 	int pid, cmd;
@@ -10,14 +9,12 @@ int main(int argc, char *argv[])
 	while(1)
 	{
 		pid 	= getpid();
-		color 	= 0x0D;
+		color 	= 0x0C;
 
-		printf("-u2-----------------------------------------------\n"); 
+		printf("-----------------------------------------------\n"); 
 	 	printf("I am proc %d in U mode: running segment=%x\n",getpid(), getcs());
 		show_menu();
 
-		printf("main argc = %d\n", argc);
-         
 		printf("Command ? ");
 		gets(name); 
 
@@ -35,9 +32,10 @@ int main(int argc, char *argv[])
 			case 5 : wait();     break;
 			case 6 : exit();     break;
 
-			// Lab 4 Edition
-			case 7 : uexec();	break;
-			case 8 : ufork();	break;
+			// Lab4 implementation
+			case 7 : uexec();	 break;
+			case 8 : ufork();	 break;
+			case 9 : hop();		 break;
 
 			default: invalid(name); break;
 		}

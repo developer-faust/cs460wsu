@@ -1,17 +1,9 @@
 #include "type.h"
 
 
-int copyImage(int childSeg)
-{
-    int i, word;
-    printf("Copying 0x%x to 0x%x\n", running->uss, childSeg);
-    for(i = 0; i < 0xFFFE; i += 2)
-    {
-        word = get_word(running->uss, i);
-        put_word(word, childSeg, i);
-    }
-    return 0;
-}
+#define KREGS 9
+#define UREGS 12
+
 /***********************************************************
   kfork() creates a child proc and returns the child pid.
   When scheduled to run, the child process resumes to body();
@@ -23,15 +15,16 @@ PROC *kfork(char *filename)
   PROC *p = dequeue(&freeList);
   
   if (p == 0) {
-    printf("Failed to kfork()\n");
+    printf("Failed to kfork there are no free process.\n");
     getc();
-    return(0);
+    return(-1);
   }
   
   p->status = READY;
   p->priority = 1;
   p->ppid = running->pid;
   p->parent = running;
+
   p->uss = segment = (p->pid + 1) * 0x1000;      // new PROC's segment
   
   /*
@@ -41,12 +34,15 @@ PROC *kfork(char *filename)
    * to give up CPU before. 
    * Initialize its kstack[ ] and ksp to comform to these.
    */
-  for (j=1; j<10; j++) {
+  for (j= 1; j < KREGS; j++) 
+  {
     p->kstack[SSIZE - j] = 0;       // all saved registers = 0
   }
-  p->kstack[SSIZE-1]=(int)goUmode;     // called tswitch() from body
-  p->ksp = &(p->kstack[SSIZE-9]); // ksp -> kstack top
 
+  p->kstack[SSIZE - 1]=(int)body;     // called tswitch() from body
+  p->ksp = &(p->kstack[SSIZE- KREGS]); // ksp -> kstack top
+
+  enqueue(&readyQueue, p);
 
   //printf("Loading executable\n"); //FOR TESTING
   if(filename)
@@ -54,31 +50,34 @@ PROC *kfork(char *filename)
 
     segment = 0x1000 * (p->pid + 1);
     load(filename, segment);           // Load executable
+
     //printf("Executable loaded\n"); //FOR TESTING
-    for (j=1; j<13; j++) {
-        put_word(0, segment, -j*2);       // Set all registers to 0
+    for (j = 1; j < 13; j++) 
+    {
+        put_word(0, segment, -j * 2);       // Set all segments to 0
     }
+
+
+
     put_word(0x0200, segment, -2);      // Set flag I bit-1 to allow interrupts 
-    p->usp = -24;
-  }
-  else
-  {
-    copyImage(segment);
-    p->usp = running->usp;
-    put_word(0, segment, p->usp+16);
-  }
-  put_word(segment, segment, p->usp+20);     // CS
-  put_word(segment, segment, p->usp+2);    // ES
-  put_word(segment, segment, p->usp);    // DS
     
-  //printProc(p);
-  
-  enqueue(&readyQueue, p);
-  printQueue(readyQueue, freeList, sleepList);
-  /*printf("Ready queue:\n");
-  print_queue(readyList);*/
-  
-  return(p->pid);
+    #define UCS -2
+    #define UES -11
+    #define UDS -12
+    #define SIZE 2        // bytes or 1 word
+
+
+    // Conform to one-segment model
+    put_word(segment, segment, UCS * SIZE);
+    put_word(segment, segment, UES * SIZE);
+    put_word(segment, segment, UDS * SIZE);
+
+    p->usp = -UREGS * SIZE;     // TOP of ustack
+    p->uss = segment;
+  }
+
+  printf("P%d kforked child P%d at segment = %x\n", running->pid, p->pid, segment);
+  return p;
 }
 
 int kexit(int event)

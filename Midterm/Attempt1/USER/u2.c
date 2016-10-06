@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
 			case 7 : uexec();	break;
 			case 8 : ufork();	break;
 
+			
+
 			default: invalid(name); break;
 		}
 	}
