@@ -6,36 +6,45 @@
 
  
 char *pname [] = {"Sun", "Mercury", "Venus", "Earth",  "Mars", "Jupiter", "Saturn", "Uranus", "Neptune" };
-
- 
  
 int color;
 int nproc;
 
 int init()
 {
-    PROC *p; int i;
+    PROC *p; int i, j;
     color = 0x0C;
-    printf("init ....");
-    for (i=0; i<NPROC; i++){   // initialize all procs
+    printf("init ...."); 
+
+    freeList = &proc[1];
+    for (i=0; i<NPROC; i++){        // initialize all procs
         p = &proc[i];
+        p->next = &proc[i+1];
+
         p->pid = i;
+        p->ppid = 0;
+        p->parent = 0;
         p->status = FREE;
         p->priority = 0;  
+        p->event = 0;
+        p->exitValue = 0;
         strcpy(proc[i].name, pname[i]);
-        p->next = &proc[i+1];
-    }
-    freeList = &proc[0];      // all procs are in freeList
-    proc[NPROC-1].next = 0;
-    readyQueue = sleepList = 0;
 
-    /**** create P0 as running ******/
-    p = get_proc(&freeList);
-    p->status = RUNNING;
-    p->ppid   = 0;
-    p->parent = p;
-    running = p;
-    nproc = 1;
+        
+        for(j = 0; j < NOFT; j++)
+            p->fd[j] = 0;  
+    } 
+
+    p->next = 0;
+
+    // P0 starts off running
+    running = &proc[0];
+    running->status = READY;
+    running->parent = &proc[0]; // Parent = self, no parent
+
+    readyQueue = 0;
+    set_vector(80, int80h);
+
     printf("done\n");
 } 
 
@@ -52,7 +61,7 @@ int scheduler()
      color = (running->pid % 6) + 0x000A;
 }
 
-int int80h();
+
 int set_vector(u16 vector, u16 handler)
 {
      // put_word(word, segment, offset)
@@ -67,12 +76,17 @@ main()
     set_vector(80, int80h);
 
     kfork("/bin/u1");     // P0 kfork() P1
-
+    printQueue("readyQueue", readyQueue);
+    printf("P%d running\n", running->pid);
     while(1){
-      printf("P0 running\n");
-      while(!readyQueue);
-      printf("P0 switch process\n");
-      tswitch();         // P0 switch to run P1
+
+        if(readyQueue)
+        {
+            printf("P0 switch process\n");
+            tswitch();
+            printf("\n\nP%d running...\n", running->pid);
+
+        } 
    }
 }
 
@@ -96,7 +110,7 @@ int body()
         {
             case 's' : tswitch();   
                 break;
-            case 'f' : kfork();     
+            case 'f' : kfork("/bin/u1");     
                 break;
             case 'q' : 
                 printf("Enter exit code: "); 

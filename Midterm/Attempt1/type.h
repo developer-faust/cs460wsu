@@ -10,7 +10,10 @@ typedef unsigned long  u32;
  
 #define NPROC    9
 #define SSIZE 1024
-
+#define NFD 10
+#define PSIZE 10
+#define NOFT 20
+#define NPIPE 10
 /******* PROC status ********/
 #define FREE     0
 #define READY    1
@@ -19,6 +22,8 @@ typedef unsigned long  u32;
 #define SLEEP    4
 #define ZOMBIE   5
 
+#define READ_PIPE 4
+#define WRITE_PIPE 5
 
 typedef struct proc
 {
@@ -37,9 +42,25 @@ typedef struct proc
     int    exitValue;
     char   name[32];           // name string of PROC
 
+    struct oft *fd[];
+
     int    kstack[SSIZE];      // per proc stack area
 }PROC;
 
+typedef struct oft
+{
+    int mode;
+    int refCount;
+    struct pipe *pipe_ptr;
+    
+}OFT;
+
+typedef struct pipe{
+    char buf[16];
+    int head, tail, data, room;
+    int nreader, nwriter;       // Number of pipe readers and writers
+    int busy;
+}PIPE;
 
 char *statusString[6] = {
     "FREE ", 
@@ -67,8 +88,10 @@ PROC proc[NPROC], *running, *freeList, *readyQueue, *sleepList;
 int color;
 int procSize = sizeof(PROC);
 
-// // Used in queue.c
 
+// PIPE
+PIPE pipe[10];
+OFT oft[NOFT];
 
 
 // // int atoi(char *s);
@@ -103,6 +126,9 @@ int kkwait(int *status);
 int kkexit(int exitValue);
 int kexec(char *fpU);
 
+int int80h();
+int set_vector(u16 vector, u16 handler);
+
 // Used in Kernel.c 
 int body();
 PROC *kfork(char *fname);
@@ -114,5 +140,14 @@ int copyImage(int childSeg);
 
 // IO Functions:
 void prints(char *s);
+ 
+// PIPE in ucode.c
+int write_pipe(int pd, char *buf, int nwrite);
+int read_pipe(int pd, char *buf, int nread);
+int showPipe(PIPE *p);
+int kpipe(int pd[2]);
+int close_pipe(int fd);
+int pfd();
+
 
 #endif

@@ -23,7 +23,7 @@
         MTXSEG  = 0x1000                           
         .globl _main, _running, _scheduler
         .globl _proc, _procSize, _color
-        .globl _putc, _getc, _tswitch, _getbp, _goUmode
+        .globl _putc, _getc, _tswitch, _getbp, _goUmode, _setds
 
 
         jmpi    start, MTXSEG                           ! CS=MTXSEG, IP=start
@@ -169,3 +169,10 @@ _putc:
 
         pop    bp
 	ret
+
+_setds:
+        push   bp
+        mov    bp, sp
+        mov    ds, 4[bp]        ! Load ds with segment value
+        pop    bp
+        ret

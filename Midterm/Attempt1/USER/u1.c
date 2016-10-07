@@ -37,6 +37,13 @@ int main(int argc, char *argv[] )
 			case 8 : ufork();	 break;
 			case 9 : hop();		 break;
 
+
+			case 10: pipe();	 break;
+			case 11: pfd();
+			case 12: read_pipe(); 	break;
+			case 13: write_pipe(); 	break;
+			case 14: close_pipe();	break;
+
 			default: invalid(name); break;
 		}
 	}

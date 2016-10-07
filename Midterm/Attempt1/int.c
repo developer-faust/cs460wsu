@@ -36,7 +36,7 @@ int kcinth()
         case 0 : r = kgetpid();        break;
         case 1 : r = kps();            break;
         case 2 : r = kchname(b);       break;
-        case 3 : r = kkfork(b);         break;
+        case 3 : r = kkfork(b);        break;
         case 4 : r = ktswitch();       break;
         case 5 : r = kkwait(b);        break;
         case 6 : r = kkexit(b);        break;
@@ -45,6 +45,14 @@ int kcinth()
         case 7 : r = kexec(b);         break;
         case 8 : r = fork();           break;
         case 9 : r = hop(b);           break;
+
+
+        // PIPES
+        case 30: r = kpipe(b);              break;
+        case 31: r = read_pipe(b, c, d);    break;
+        case 32: r = write_pipe(b, c, d);   break;
+        case 33: r = close_pipe(b);         break;
+        case 34: r = pfd();                 break;
 
         // From Lab 3: getc() putc() syscalls
         case 90: r = getc();           break;
@@ -60,20 +68,21 @@ int kcinth()
 } 
 int copyImage(int childSeg)
 {
-    int i, word;
+    int i;
+    u16 word;
+ 
 
-    #define SIZE_OF_WORD 2
-
-    printf("Copying 0x%x to 0x%x\n", running->uss, childSeg);
-    for(i = 0; i < (64 / SIZE_OF_WORD) * 1024; i++)
+    printf("Copying %x to %x\n", running->uss, childSeg);   // WORD_SIZE = 2
+    for(i = 0; i < (64 / WORD_SIZE) * 1024 - 1; i++)
     {
-        word = get_word(running->uss, i * SIZE_OF_WORD);
-        put_word(word, childSeg, i * SIZE_OF_WORD);
+        word = get_word(running->uss, i * WORD_SIZE);
+        put_word(word, childSeg, i * WORD_SIZE);
     }
 
     return 0;
 }
-int hop(u32 newsegment)
+
+int hop(int newsegment)
 {
     u16 segment;
 
@@ -160,6 +169,8 @@ int kchname(char *name)
         name++;
         c++;
     }
+
+    cp = 0;
 
     printf("changing name of proc %d to %s\n", running->pid, buf);
     strcpy(running->name, buf);
@@ -280,3 +291,4 @@ int kkexit(int value)
     return i;
 
 }
+
