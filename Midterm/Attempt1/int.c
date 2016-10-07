@@ -187,6 +187,23 @@ int kkfork()
     return i;
 }
 
+int fork()
+{
+    int i, pid;
+
+    PROC *p;
+    u16 segment;
+
+    printf("Fork syscall\n");
+    p = kfork(0);
+    if (p == 0)
+    {
+        return -1;
+    }
+
+    return p->pid; 
+}
+
 // Lab 4 Implementation Code for syscall function : exec(filename)
 // 1. Convert file name to byte string representation
 

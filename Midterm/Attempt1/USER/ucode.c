@@ -11,7 +11,8 @@ char *cmd[]={
   "exec", 
   "fork", 
   "hop", 
-  "pipe",
+  "pipe"
+  "show",
   "pfd",
   "read",
   "write",
@@ -25,7 +26,7 @@ int show_menu()
 {
     printf("***************** Menu *****************************************\n");
     printf("*  ps  chname  kfork  switch  wait  exec   exit fork hop  pipe *\n");
-    printf("*  pfd read    write  close                                    *\n");
+    printf("*  show pfd read write  close                                  *\n");
     printf("****************************************************************\n");
 }
 
