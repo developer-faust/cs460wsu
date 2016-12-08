@@ -170,6 +170,45 @@ void process_line(char *line)
 		// PIPE Failed
 		printf("Pipe failed");
 	}
+
+	// Fork a child process to execute pipe
+	pid = fork();
+	if (pid < 0)
+	{
+		printf("Failed to fork a child process");
+	}
+
+	// pid = 0 : child process is pipe writer
+	if (pid == 0)
+	{
+		close(pd[PIPEIN]);
+		close(STDOUT);
+
+		// replace stdout with pipeout
+		dup(pd[PIPEOUT]);
+
+		// execute the command in the head
+		ExecuteComand(head);
+
+		// if Execution reaches here then failure
+		exit(FAILURE);
+	}
+	else
+	{
+		// parent : pipe reader
+		close(pd[PIPEOUT]);
+		close(STDIN);
+
+		// replace stdin with pipeout
+		dup(pd[PIPEIN]);
+
+		// Recursive call to process_line to process more commands
+		// because tail could contain more pipes
+		process_line(tail);
+
+		// Failed if reaches here
+		exit(FAILURE);
+	}
 	printf("Processing line of input: %s\n", line );
 	
 
