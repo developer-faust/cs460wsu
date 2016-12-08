@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if [ $# \< 1 ]; then echo Usage: mku filename; exit; fi
+
+echo CREATE Backups.....
+cp vdisk disk_image
+cp ptable table
+cp mtxlib lib
+cp MTXinstallCD.iso cd.iso
+
+
+# default partiton = 1
+PARTITION=1
+if [ $# \> 1 ]; then PARTITION=$2; fi
+
+chmod +x table
+VDISK=disk_image 
+ 
+SECTOR=$(./table disk_image $PARTITION)
+OFFSET=$(expr $SECTOR \* 512)
+
+echo partition=$PARTITION sector=$SECTOR offset=$OFFSET
+#read dummy
+
+mount -o loop,offset=$OFFSET $VDISK /mnt
+
+echo compiling $1.c .....
+as86 -o u.o u.s
+bcc -c -ansi $1.c
+
+ls -l
+echo linking .......
+ld86 u.o $1.o lib /usr/lib/bcc/libc.a 
+#2> /dev/null 
+
+echo copying passwd file
+cp /mnt/etc/passwd passwd
+
+echo copying $1 into $VDISK/bin/$1
+ls
+
+sudo cp -av a.out /mnt/bin/$1
+sudo umount /mnt
+
+echo done $1
