@@ -21,10 +21,10 @@ int main(int argc, char *argv[])   // invoked by exec("login /dev/ttyxx")
 {
     tty = argv[1];
 
-    // Close anything you may of inherited from your parent
+    // Close inherited from your parent
     close(0); 
     close(1); 
-    close(2); // login process may run on different terms
+    close(2); // login process runs on different terms
 
     settty(tty);  // store tty string in PROC.tty[] for putc()
 
@@ -44,8 +44,7 @@ int main(int argc, char *argv[])   // invoked by exec("login /dev/ttyxx")
 
      
     // NOW we can use printf, which calls putc() to our tty
-    printf("Init Process : Open %s as stdin, stdout, stderr\n", tty);
- 
+    printf("Init Process : Open %s as stdin, stdout, stderr\n", tty); 
     printf("****** Faustino's - LOGIN ******\n"); 
 
     while(1)

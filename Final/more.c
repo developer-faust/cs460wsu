@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 		open(tty, O_RDONLY);
 	}
 	else
-	{
+	{		
 	// Case 2: Get from file discriptor
 		fd = open(argv[1], O_RDONLY);
 	}
@@ -30,9 +30,9 @@ int main(int argc, char *argv[])
 	}
 
 	while(1)
-	{
-		display(fd, NUMROWS);
+	{ 
 
+		display(fd, NUMROWS);
 		while(1)
 		{
 			c = getc();
@@ -43,7 +43,6 @@ int main(int argc, char *argv[])
 					display(fd, NUMROWS);
 					break;
 				case '\r':
-				case '\n':
 					display(fd, 1);
 					break;
 				case 'q':

@@ -1,4 +1,4 @@
-qemu-system-i386 -hda disk_image -m 520M -smp $1 -serial /dev/pts/6 -serial /dev/pts/7 -parallel /dev/pts/3 -localtime 
+qemu-system-i386 -hda disk_image -m 520M -smp $1 -serial /dev/pts/1 -serial /dev/pts/2 -parallel /dev/pts/3 -localtime 
 
 #-cdrom cd.iso -boot d
 

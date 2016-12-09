@@ -77,8 +77,10 @@ int main()
 		if (pid)
 		{ 
 			printf("faust-sh waits....\n");
+			printf("***************************************\n");
 			pid = wait(&status);
 
+			
 			printf("***************************************\n");
 			printf("faust-sh: My  child P%d died with exit status %x\n", pid, status);
 		}
@@ -143,13 +145,14 @@ void process_line(char *line)
 	else
 	{
 		// No Tail points to '\0' end of line
-		tail = line + length;
+		tail = 0;
 	}
 
 	// Tail doesnt exists just execute the command in head
 	if (tail == 0 || tail[0] == '\0')
 	{
 		ExecuteComand(head);
+		exit(FAILURE);
 	}
 
 	// There is a pipe |  Create pipes
@@ -292,6 +295,7 @@ void ExecuteComand(char *line)
 	if (line == 0 || line[0] == '\0')
 	{
 		printf("Command amd args is empty");
+		return;
 	}
 
 	IORedirect(line);
@@ -300,5 +304,5 @@ void ExecuteComand(char *line)
 
  	// if reaches here then failed
  	printf("Invalid command\n");
- 	exit(FAILURE);
+ 	return;
 }

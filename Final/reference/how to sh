@@ -1,0 +1,68 @@
+How SH works:
+
+1. Get uid and cwd and home 
+2. Ask for input and parse the line of input into argv[][]
+3. Commands:
+
+	case 1: cd [path] - change dir to argv[1]
+			cd 		  - change dir to cwd if not already in it
+
+	case 2: logout/exit - exit with SUCCESS
+
+
+4. fork a child process that will run commands: 
+   Parent process waits for child to complete while child process the line entered by user
+
+
+5. process line(char* line):
+   1. get the string length of line
+   2. tokenize the line using pipe delimiter the first token is the head
+   3. check if the length of the first token is less than head if so set tail to everything right of | symbol
+      otherwise tail is just the line
+
+   4. No tail means no pipe so execute the command using head
+   5. If tail exists then create pipes using pd - pipe(pd)
+   6. Fork 2 process to run the pipe:
+   	  child process - acts like the pipe writer
+   	  				  close read pipe pd[0]
+   	  				  close standerd out - close(1) and replace with pd[1] pipe writer 
+   	  				  execute the command using head.
+
+   	  parent process - acts like the pipe reader
+   	  				   close write pipe
+   	  				   close standard in and replace with pd[0] pipe reader
+   	  				   recursive call to process line because there could be more commands in the tail end
+
+6. ExecuteCommand(char* line):
+   1. check if line is empty if so return
+   2. check if there is Input Output Redirection
+   3. exec(line) - line contains the command to be executed i.e. cat abcde
+
+7. IORedirect(char *line):
+   1. parse the line into argv[][]
+   2. skip argv[0] check each argument for redirection symbol < > >>
+   3. set file to argv[i + 1] : argument immediately following the < > >> symobls
+
+   LOOP: while (i < argc) 
+   1. Case < - redirect input:
+   		1. close stdin
+   		2. open the file for read
+   		3. set argc to i this is how many arguments before redirect
+   		4. break out of loop
+   2. Case > - redirect output override
+   		1. close stdout
+   		2. open file for write or create if does not exists
+   		3. set argc to i
+   		break out of loop
+   3. Case >> - redirect output append
+   		1. close stdout
+   		2. open file for write append  create
+   		3. set argc to i
+   		break out of loop
+
+   4. Recreate the line 
+
+
+
+
+

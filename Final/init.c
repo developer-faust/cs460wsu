@@ -11,9 +11,9 @@ int main(int argc, char *argv[])
 	int pid_s1 = -1; 
 
 	// 1. open /dev/tty0 as 0 (READ) and 1 (WRITE) in order to display console messages
-    stdin = open("/dev/tty0", 0);
-    stdout = open("/dev/tty0", 1);
-    stderr = open("/dev/tty0", 1);
+    stdin = open("/dev/tty0", STDIN);
+    stdout = open("/dev/tty0", STDOUT);
+    stderr = open("/dev/tty0", STDERR);
 
 
     if(stdin < 0 || stdout < 0 || stderr < 0)
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
  	// 2. Now we can use printf, which calls putc(), which writes to stdout
     printf("--------------------------------------------------\n");
-    printf("P%d: Starting initialization on console\n", getpid()); 
+    printf("faust-init P%d: Starting initialization on console\n", getpid()); 
 
    
     pid_s0 = init("ttyS0");
@@ -40,12 +40,12 @@ int main(int argc, char *argv[])
     {
         int pid, status;
 
-        printf("P%d: Waiting...\n", getpid());
+        printf("faust-init P%d: Waiting...\n", getpid());
         printf("--------------------------------------------------\n");
         pid = wait(&status);
 
         printf("\n--------------------------------------------------\n");
-        printf("P%d: My child P%d has died with status %x\n", 
+        printf("faust-init P%d: My child P%d has died with status %x\n", 
                 getpid(), pid, status);
 
         if(pid == pid_console)
@@ -69,7 +69,7 @@ int init(char *name)
 
     if(pid)
     {
-        printf("P%d: Forking login task P%don %s\n", getpid(), pid, name); 
+        printf("faust-init P%d: Forking login task P%don %s\n", getpid(), pid, name); 
         return pid;
     }
 
@@ -81,9 +81,9 @@ int init(char *name)
     // Open new stdin/stdout
     strcpy(path, "/dev/");
     strcat(path, name);     // path = /dev/tty0
-    stdin = open(path, 0);
-    stdout = open(path, 1); 
-    stderr = open(path, 1); 
+    stdin = open(path, STDIN);
+    stdout = open(path, STDOUT); 
+    stderr = open(path, STDERR); 
 
     if(stdin < 0 || stdout < 0 || stderr < 0)
     { 

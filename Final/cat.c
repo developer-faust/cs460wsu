@@ -33,15 +33,14 @@ int main(int argc, char *argv[])
 		if (fd != 0 && c1 == '\n')
 		{	 
 			putc('\r'); 
-		}
+		} 
 		if (fd == 0 && c1 == '\r')
-		{
-			// '\r' for every '\n' character 
-			putc('\n'); 
+		{	 
+			putc('\n');
 			putc('\r'); 
 		} 
-	} 
+	}  
 
-	close(fd);
-	exit(SUCCESS); 
+	close(fd); 
+	return 0;
 }

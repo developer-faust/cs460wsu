@@ -4,9 +4,9 @@ if [ $# \< 1 ]; then echo Usage: mku filename; exit; fi
 
 echo CREATE Backups.....
 #cp vdisk disk_image
-cp ptable table
+#cp ptable table
 cp mtxlib lib
-cp MTXinstallCD.iso cd.iso
+#cp MTXinstallCD.iso cd.iso
 
 
 # default partiton = 1
