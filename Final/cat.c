@@ -3,21 +3,20 @@
 int main(int argc, char *argv[])
 { 
 
-	char c1, c2;
+	char c1 = 0;
 	int fd;
 
-	printf("*********** My Cat is Dangerous!! MEWOWWWRR ***********\n\n");
 
 	// Case 1 : Cat from STDIN
-	if (argc == 1)
+	if (argc > 1)
 	{
-		// STDIN = 0
-		fd = STDIN;
+		// Case 1 : Cat from file 
+		fd = open(argv[1], O_RDONLY);  
 	}
 	else
 	{
-		// Case 2 : Cat from file
-		fd = open(argv[1], O_RDONLY);
+		// STDIN = 0
+		fd = STDIN; 
 	}
 
 	if (fd < 0)
@@ -25,36 +24,24 @@ int main(int argc, char *argv[])
 		printf("CAT FAILED: Can not find my prey file\n");
 		exit(FAILURE);
 	}
-
+  
 	// READ Input from fd
 	while(read(fd, &c1, 1) > 0)
-	{
+	{		
 		putc(c1);
-
 		// match new line characters
-		if (fd == 0)
-		{
-
-			if (c1 == '\r' && (c2 != '\n' && c2 != '\r'))
-			{
-				putc('\n');
-				putc('\r');
-			}
-			
+		if (fd != 0 && c1 == '\n')
+		{	 
+			putc('\r'); 
 		}
-		else
+		if (fd == 0 && c1 == '\r')
 		{
-			if (c1 == '\n' && (c2 != '\n' && c2 != '\r'))
-			{
-				// '\r' for every '\n' character
-				putc('\r');
-			}
-		}
+			// '\r' for every '\n' character 
+			putc('\n'); 
+			putc('\r'); 
+		} 
+	} 
 
-		c2 = c1;
-	}
-
-	printf("\n");
 	close(fd);
 	exit(SUCCESS); 
 }

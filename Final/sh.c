@@ -29,13 +29,13 @@ int main()
 		// Ask user for input
 		do
 		{
-			printf("faust-sh: %s$ ", cwd);
+			printf("faust-sh: %s$ ", cwd); 
 			gets(line);
 
 			// Parse the line into cmd arg
 			argc = parse(line, " ", argv);
 
-			printf("You Entered: %s\n", line);
+			//printf("You Entered: %s\n", line);
 
 		} while (argc < 1);
 
@@ -92,21 +92,7 @@ int main()
 	
 	return -1;
 }
-
-int hasPipes(char *line)
-{
-	int i = 0;
-	while(line[i]  != 0)
-	{
-		if (line[i] == '|' )
-		{
-			return 1;		// pipe found
-		}
-		i++;
-	}
-
-	return 0;
-}
+ 
 
 int parse(char *line, char *delim, char argv[32][256])
 {
@@ -114,7 +100,7 @@ int parse(char *line, char *delim, char argv[32][256])
 	char *token;
 	int argc = 0;
 
-	printf("parsing argv[]: %s \n", argv[0]);
+	//printf("parsing argv[]: %s \n", argv[0]);
 
 	// Copy argv into temp to preserve (strtok destroys string)
 	strcpy(temp, line);
@@ -126,7 +112,7 @@ int parse(char *line, char *delim, char argv[32][256])
 		token = strtok(0, delim); 
 	}
 
-	printf("argc count = %d\n", argc);
+	//printf("argc count = %d\n", argc);
 	return argc;
 }
 void process_line(char *line)
@@ -146,6 +132,7 @@ void process_line(char *line)
 
 	// Get the command is the head everything left of | pipe
 	head = strtok(line, "|");
+ 
 
 	if (strlen(head) < length)
 	{
@@ -155,6 +142,7 @@ void process_line(char *line)
   	}
 	else
 	{
+		// No Tail points to '\0' end of line
 		tail = line + length;
 	}
 
@@ -184,7 +172,7 @@ void process_line(char *line)
 		close(pd[PIPEIN]);
 		close(STDOUT);
 
-		// replace stdout with pipeout
+		// replace stdout with pipeout pd[1]
 		dup(pd[PIPEOUT]);
 
 		// execute the command in the head
@@ -209,7 +197,7 @@ void process_line(char *line)
 		// Failed if reaches here
 		exit(FAILURE);
 	}
-	printf("Processing line of input: %s\n", line );
+	//printf("Processing line of input: %s\n", line );
 	
 
 }
@@ -222,8 +210,8 @@ void IORedirect(char *line)
 	char *file;
 
 	// parse the line into command and args
-	argc = parse(line, " ", argv); 
-	printf("IORedirect Done: argv[0] = %s argc = %d\n",argv[0], argc); 
+	argc = parse(line, " ", argv); 	// line: cat abc > filename, argv: [cat][abc][>][filename]
+	//printf("IORedirect Done: argv[0] = %s argc = %d\n",argv[0], argc); 
 
 	// Search arguments for redirection 
 	i = 1;	// Skip argv[0] command
@@ -237,24 +225,24 @@ void IORedirect(char *line)
 		if (strcmp(c, "<") == 0)
 		{
 			// redirect input
-			printf("redirect input: from: %s\n", file);
+			//printf("redirect input: from: %s\n", file);
 
 			// replace STDIN with the file
 			close(STDIN);
-			if (open(file, 0) < 0)
+			if (open(file, O_RDONLY) < 0)
 			{
 				printf("error io_redirect\n");
 			}
 
 			argc = i; 
-			break; 
+			break;  
 		} 
 
 
 		if (strcmp(c, ">") == 0)
 		{
 			// redirect output
-			printf("redirect output to %s overwrite\n", file);
+			//printf("redirect output to %s overwrite\n", file);
 
 			// replace stdi with file
 			close(STDOUT);
@@ -270,9 +258,9 @@ void IORedirect(char *line)
 		if (strcmp(c, ">>") == 0)
 		{
 			// redirect output
-			printf("redirect output to %s and append\n", file);
+			//printf("redirect output to %s and append\n", file);
 
-			// replace stdi with file
+			// replace stdout with file
 			close(STDOUT);
 			if (open(file, O_WRONLY | O_APPEND | O_CREAT) < 0)
 			{
@@ -293,8 +281,6 @@ void IORedirect(char *line)
 		strcat(line, " ");
 		strcat(line, argv[j]);
 	}
-	printf("line : %s\n", line);
-
 }
 void ExecuteComand(char *line)
 {
@@ -302,7 +288,7 @@ void ExecuteComand(char *line)
 	int red;
 	char file[64];
 
-	printf("Executing Command: %s\n", line);
+	//printf("Executing Command: %s\n", line);
 	if (line == 0 || line[0] == '\0')
 	{
 		printf("Command amd args is empty");

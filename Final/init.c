@@ -1,9 +1,8 @@
-#include "ucode.c"
-
-int stdin, stdout, stderr;
-
+#include "ucode.c" 
+ 
 int init(char *name);
 void login(char *path);
+int stdin, stdout, stderr;
 
 int main(int argc, char *argv[])
 {
@@ -28,9 +27,11 @@ int main(int argc, char *argv[])
     printf("--------------------------------------------------\n");
     printf("P%d: Starting initialization on console\n", getpid()); 
 
+   
     pid_s0 = init("ttyS0");
     pid_s1 = init("ttyS1");
     pid_console = init("tty0"); // Last so prints don't invade input space
+
 
     // P1 should loop forever, waiting for one of its children to die
 	// It can then clean up and replace the child process  
@@ -44,7 +45,7 @@ int main(int argc, char *argv[])
         pid = wait(&status);
 
         printf("\n--------------------------------------------------\n");
-        printf("P%d: My child P%dhas died with status %x\n", 
+        printf("P%d: My child P%d has died with status %x\n", 
                 getpid(), pid, status);
 
         if(pid == pid_console)
@@ -52,12 +53,8 @@ int main(int argc, char *argv[])
         else if(pid == pid_s0)
             pid_s0 = init("ttyS0");
         else if(pid == pid_s1)
-            pid_s1 = init("ttyS1");
-        //else
-        //{
-        //    printf("JJINIT P%d: I didn't know I had that child!\n", getpid());
-        //}
-	}
+            pid_s1 = init("ttyS1"); 
+    }
 
 }
 

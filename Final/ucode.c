@@ -5,7 +5,8 @@ char line[64], pathname[32], i2[32], i3[32];
 char *name[16], components[64];
 int nk;
 
-#define BUF_SIZE 1024
+#define BUF_SIZE  1024
+#define NUMLINES  128
 
 int getpid()
 {
