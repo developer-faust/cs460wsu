@@ -1,0 +1,18 @@
+how to more:
+-------------
+
+Case 1: from STDIN i.e. pipe 
+
+1. duplicate the stdin into fd
+2. close stdin
+3. gettty int tty[] string // PROC.tty[] used for putc
+4. open tty for read
+
+Case 2: Get from file discriptor
+
+1. open the file located in argv[1] for read
+2. LOOP forever:
+	1. get input from stdin pass in the file descriptor to read the file or stdin
+	case ' ': display specified number of rows
+	case '\n': display one line
+	case q: quit

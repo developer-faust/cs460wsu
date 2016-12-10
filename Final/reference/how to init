@@ -1,0 +1,30 @@
+How to init
+----------------------------
+
+main:
+
+1. open /dev/tty0  stdin as 0 (READ) and stdout and stderr 1 (WRITE) in order to display console message
+   // Now we can use printf, which calls putc(), which writes to stdout
+
+2. initialize 3 pid's for the tty s0: init("ttyS0"), s1: init("ttyS1"), console: init("tty0") by calling (// Last so printf don't invade input space)
+3. init() returns pid of P1 parent process
+
+3. Loop forever:  // P1 should loop forever, waiting for one of its children to die
+				  // It can then clean up and replace the child process
+
+init():
+1. fork a process:1
+	
+	case 1: process is parent return its pid
+	case 2: pid 0 child process
+			// Close old stdin/stdout
+
+			// create a path string "/dev/tty0", "/dev/ttyS0", "/dev/ttyS1"
+			// open new stdin/stdout/stderr using the created path
+			// execute login using path as argument.
+			// login message will show on the tty designated by the path string
+
+
+login("path"): // path is tty name i.e. /dev/tty0, /dev/ttyS0, /dev/ttyS1
+1. create login command i.e. login /dev/tty0
+2. exec the command

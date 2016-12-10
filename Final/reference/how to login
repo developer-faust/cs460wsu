@@ -1,0 +1,20 @@
+how to login:
+-----------------
+main: // invoked by exec("login /dev/ttyxx")
+1. set tty to argv[1]. i.e. /dev/ttyxx
+2. close out all inherited descriptors
+3. settty(tty): store the tty string in PROC.tty[] used for putc
+4. open the tty as stdin stdout stderr
+5. allow the control -c signal interrupt to kill proc on this tty
+5. loop forever:
+	1. prompt for user name and password and initialize the USER struct
+	2. verify the username and password
+	   Case success:   // Change to user account and execute start program
+
+verify(USER *user):
+1. Verify user name and password from /etc/passwd file
+1. open the password_file
+2. read the file line by line
+3. tokenize the line to get username and again to get password
+4. if match then continue to tokenize and initialize the struct variables by using strcpy
+5. return 0 if success -1 failure
